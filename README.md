@@ -1,4 +1,4 @@
-# Useful Commands
+## Useful Commands
 
 - `pnpm run dev`
 - `pnpm run format`
@@ -6,7 +6,7 @@
 
 ## Tech Stack
 
-**UI:** [ShadcnUI](https://ui.shadcn.com) (TailwindCSS + RadixUI)
+**UI:** [ShadcnUI](https://ui.shadcn.com)
 
 **Build Tool:** [Vite](https://vitejs.dev/)
 
@@ -16,20 +16,20 @@
 
 **Linting/Formatting:** [ESLint](https://eslint.org/) & [Prettier](https://prettier.io/)
 
-**Icons:** [Lucide Icons](https://lucide.dev/icons/), [Tabler Icons](https://tabler.io/icons) (Brand icons only)
+**Icons:** [Lucide Icons](https://lucide.dev/icons/)
 
 ## Run Locally
 
-Clone the project
+1. Clone the project
 
 ```bash
-  git clone https://github.com/shikipo/shadcn_admin.git
+  git clone https://github.com/shikipo/interactive-language-reader.git
 ```
 
 Go to the project directory
 
 ```bash
-  cd shadcn_admin
+  cd interactive-language-reader
 ```
 
 Install dependencies
@@ -42,10 +42,4 @@ Start the server
 
 ```bash
   pnpm run dev
-```
-
-Rebuild the project (if you encounter issues with Vite)
-
-```bash
-  pnpm vite --force
 ```
