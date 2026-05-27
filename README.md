@@ -1,6 +1,5 @@
 ## Useful Commands
 
-- `pnpm run dev`
 - `pnpm run format`
 - `pnpm knip` (finds unused files)
 
@@ -17,6 +16,8 @@
 **Linting/Formatting:** [ESLint](https://eslint.org/) & [Prettier](https://prettier.io/)
 
 **Icons:** [Lucide Icons](https://lucide.dev/icons/)
+
+**SVG:** [Pixels Market](https://pixels.market/illustrations/categories/user-interface)
 
 ## Run Locally
 
