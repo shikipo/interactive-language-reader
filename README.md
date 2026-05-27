@@ -21,7 +21,7 @@
 
 ## Run Locally
 
-1. Clone the project
+Clone the project
 
 ```bash
   git clone https://github.com/shikipo/interactive-language-reader.git
