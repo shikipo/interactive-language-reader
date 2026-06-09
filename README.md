@@ -49,3 +49,10 @@ Start the server
 - Added animated upload progress bar that replaces the upload UI while loading
 - Integrated `react-pdf` to render the uploaded PDF after progress completes
 - Added word annotation overlay: each word from `words.ts` is highlighted with a border box on the PDF; hovering shows the word label
+
+TODO:
+Backend:
+- Implement actual PDF parsing to extract words and their positions instead of using static data
+
+Frontend:
+- react-pdf error handling should be direct in ProgressBar component, not as a separate state in Dashboard
