@@ -15,9 +15,7 @@
 
 **Linting/Formatting:** [ESLint](https://eslint.org/) & [Prettier](https://prettier.io/)
 
-**Icons:** [Lucide Icons](https://lucide.dev/icons/)
-
-**SVG:** [Pixels Market](https://pixels.market/illustrations/categories/user-interface)
+**Icons:** [HugeIcons](https://hugeicons.com/)
 
 ## Run Locally
 
@@ -44,3 +42,10 @@ Start the server
 ```bash
   pnpm run dev
 ```
+
+## Timestamp 04.06.2026 - 10.06.2026
+
+- Built the main dashboard layout with a file upload zone (drag & drop, single PDF)
+- Added animated upload progress bar that replaces the upload UI while loading
+- Integrated `react-pdf` to render the uploaded PDF after progress completes
+- Added word annotation overlay: each word from `words.ts` is highlighted with a border box on the PDF; hovering shows the word label

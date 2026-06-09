@@ -1,6 +1,12 @@
 import { Link } from '@tanstack/react-router'
 
-import { Bell, ChevronsUpDown, LogOut, Settings } from 'lucide-react'
+import {
+	Notification01Icon,
+	Settings01Icon,
+	UnfoldMoreIcon,
+	Logout01Icon,
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 
 import { useAuthStore } from '@/stores/auth-store'
 
@@ -82,7 +88,12 @@ export function NavUser() {
 										{userEmail.toLowerCase()}
 									</span>
 								</div>
-								<ChevronsUpDown className='ms-auto size-4' />
+								<HugeiconsIcon
+									icon={UnfoldMoreIcon}
+									size={24}
+									color='currentColor'
+									strokeWidth={2}
+								/>
 							</SidebarMenuButton>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent
@@ -117,13 +128,23 @@ export function NavUser() {
 								<DropdownMenuItem asChild></DropdownMenuItem>
 								<DropdownMenuItem asChild>
 									<Link to='/settings'>
-										<Settings />
+										<HugeiconsIcon
+											icon={Settings01Icon}
+											size={24}
+											color='currentColor'
+											strokeWidth={2}
+										/>
 										Settings
 									</Link>
 								</DropdownMenuItem>
 								<DropdownMenuItem asChild>
 									<Link to='/settings/notifications'>
-										<Bell />
+										<HugeiconsIcon
+											icon={Notification01Icon}
+											size={24}
+											color='currentColor'
+											strokeWidth={2}
+										/>
 										Notifications
 									</Link>
 								</DropdownMenuItem>
@@ -133,7 +154,12 @@ export function NavUser() {
 								variant='destructive'
 								onClick={() => setOpen(true)}
 							>
-								<LogOut />
+								<HugeiconsIcon
+									icon={Logout01Icon}
+									size={24}
+									color='currentColor'
+									strokeWidth={2}
+								/>
 								Sign out
 							</DropdownMenuItem>
 						</DropdownMenuContent>

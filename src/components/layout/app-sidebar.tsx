@@ -1,4 +1,5 @@
-import { BookOpen } from 'lucide-react'
+import { BookOpen01Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 
 import { useLayout } from '@/context/layout-provider'
 
@@ -27,7 +28,7 @@ export function AppSidebar() {
 						<SidebarMenuButton size='lg' asChild>
 							<div className='flex items-center gap-2'>
 								<div className='flex aspect-square size-8 items-center justify-center text-sidebar-primary'>
-									<BookOpen className='size-6' />
+									<HugeiconsIcon icon={BookOpen01Icon} size={24} color='currentColor' strokeWidth={2} />
 								</div>
 								<span className='font-medium'>LinguaPDF</span>
 							</div>
