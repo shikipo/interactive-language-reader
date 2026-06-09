@@ -1,4 +1,10 @@
 import { useEffect, useState } from 'react'
+import { Document, Page, pdfjs } from 'react-pdf'
+import 'react-pdf/dist/Page/TextLayer.css'
+import 'react-pdf/dist/Page/AnnotationLayer.css'
+pdfjs.GlobalWorkerOptions.workerSrc =
+  `/pdf.worker.min.mjs`
+  const API_URL = "http://127.0.0.1:8000"
 
 import {
 	CircleAlertIcon,
@@ -11,7 +17,6 @@ import {
 	ImageIcon,
 	RefreshCwIcon,
 	Trash2Icon,
-	UploadIcon,
 	VideoIcon,
 } from 'lucide-react'
 
@@ -36,6 +41,7 @@ import {
 } from '@/components/ui/table'
 
 import { Badge } from '@/components/reui/badge'
+
 
 interface FileUploadItem extends FileWithPreview {
 	progress: number
@@ -81,15 +87,43 @@ export function FileUploadTable({
 		maxSize,
 		accept,
 		multiple,
-		onFilesChange: (newFiles) => {
-			const newUploadFiles = newFiles.map((file) => {
-				const existing = uploadFiles.find((f) => f.id === file.id)
-				if (existing) return { ...existing, ...file }
-				return { ...file, progress: 0, status: 'uploading' as const }
+		onFilesChange: async (newFiles) => {
+	const newUploadFiles = newFiles.map((file) => {
+		const existing = uploadFiles.find((f) => f.id === file.id)
+
+		if (existing) return { ...existing, ...file }
+
+		return {
+			...file,
+			progress: 0,
+			status: 'uploading' as const,
+		}
+	})
+
+	setUploadFiles(newUploadFiles)
+
+	onFilesChange?.(newFiles)
+
+	if (newFiles.length > 0) {
+		const file = newFiles[0].file
+
+		const formData = new FormData()
+		formData.append('file', file)
+
+		try {
+			const response = await fetch(`${API_URL}/upload`, {
+				method: 'POST',
+				body: formData,
 			})
-			setUploadFiles(newUploadFiles)
-			onFilesChange?.(newFiles)
-		},
+
+			const result = await response.json()
+
+			console.log('UPLOAD SUCCESS:', result)
+		} catch (error) {
+			console.error('UPLOAD ERROR:', error)
+		}
+	}
+},
 	})
 
 	useEffect(() => {
@@ -344,6 +378,32 @@ export function FileUploadTable({
 					</div>
 				</div>
 			)}
+
+			<div className='mt-6 flex justify-center'>
+           <div
+  style={{
+    position: 'relative',
+    height: '600px',
+    overflowY: 'auto',
+    border: '1px solid #ddd',
+  }}
+>
+    {uploadFiles[0]?.file && (
+      <Document
+        file={uploadFiles[0].file}
+        onLoadSuccess={() => console.log('PDF LOADED')}
+        onLoadError={(error) => console.error('PDF ERROR:', error)}
+      >
+       <Page
+  pageNumber={1}
+  width={800}
+  renderTextLayer={false}
+  renderAnnotationLayer={false}
+/>
+      </Document>
+    )}
+  </div>
+</div>
 
 			{/* Errors */}
 			{errors.length > 0 && (

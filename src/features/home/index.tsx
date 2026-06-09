@@ -14,9 +14,9 @@ export function Dashboard() {
 			</Header>
 
 			<Main fixed className='flex flex-col'>
-				<div className='flex flex-1 flex-col rounded-xl border p-4'>
+				<div className='flex flex-col rounded-xl border p-4'>
 					<p className='mb-4 text-sm text-muted-foreground text-center'>DE &lt;-&gt; EN</p>
-					<FileUploadTable simulateUpload className='flex-1' />
+					<FileUploadTable simulateUpload />
 				</div>
 			</Main>
 		</>

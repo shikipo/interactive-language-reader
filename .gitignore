@@ -29,3 +29,10 @@ cookies.xml
 *.njsproj
 *.sln
 *.sw?
+# Python backend
+backend/venv
+backend/uploads
+backend/__pycache__
+
+# Python cache
+*.pyc
