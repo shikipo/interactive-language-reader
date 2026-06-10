@@ -7,9 +7,11 @@ class PageRequest(BaseModel):
 
 
 class HoverRequest(BaseModel):
+    session_id: str
     page_number: int
     x: float  # coordinates as % of image size (0-100)
     y: float  # using % makes it resolution-independent
+    target_language: str = "EN-US"
 
 
 @dataclass

@@ -1,9 +1,13 @@
-from fastapi import FastAPI
+import os
 from dotenv import load_dotenv
-from routers import pdf
+from fastapi import FastAPI
 
-load_dotenv()
+# Load environment variables before importing routers that depend on them
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "services", "keys.env"))
+
+from routers import pdf, translate
 
 app = FastAPI(title="PDF Image Translator")
 
 app.include_router(pdf.router)
+app.include_router(translate.router)

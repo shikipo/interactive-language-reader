@@ -1,4 +1,2 @@
 allowBuilds:
-  '@swc/core': false
-  esbuild: false
-  msw: false
+  '@swc/core': true

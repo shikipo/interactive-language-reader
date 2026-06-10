@@ -1,3 +1,4 @@
+import uuid
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from fastapi.responses import JSONResponse
 from services.pdf import PDFService
@@ -7,6 +8,9 @@ router = APIRouter(prefix="/pdf", tags=["pdf"])
 
 pdf_service = PDFService()
 ocr_service = OCRService()
+
+# Shared cache for PDF pages (indexed by session_id)
+page_cache: dict[str, list[bytes]] = {}
 
 
 @router.post("/translate")
@@ -20,6 +24,9 @@ async def translate_pdf(
     pdf_bytes = await file.read()
     pages = pdf_service.extract_pages_as_images(pdf_bytes)
 
+    session_id = str(uuid.uuid4())
+    page_cache[session_id] = pages
+
     results = []
     for i, img_bytes in enumerate(pages):
         regions = ocr_service.extract_text_regions(img_bytes)
@@ -31,4 +38,8 @@ async def translate_pdf(
             ]
         })
 
-    return JSONResponse(content={"pages": results, "total_pages": len(results)})
+    return JSONResponse(content={
+        "session_id": session_id,
+        "pages": results,
+        "total_pages": len(results)
+    })

@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException, JSONResponse
+from fastapi import APIRouter, HTTPException
+from fastapi.responses import JSONResponse
 from services.ocr import OCRService
 from services.translation import TranslationService
 from models.schemas import HoverRequest
