@@ -1,7 +1,14 @@
 import pytesseract
+
+pytesseract.pytesseract.tesseract_cmd = (
+    r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+)
+
+print("OCR loaded")
+print("Tesseract:", pytesseract.get_tesseract_version())
 import cv2
 import numpy as np
-from models.schemas import TextRegion
+from app.models.schemas import TextRegion
 
 
 class OCRService:

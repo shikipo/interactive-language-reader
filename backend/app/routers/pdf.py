@@ -1,8 +1,8 @@
 import uuid
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from fastapi.responses import JSONResponse
-from services.pdf import PDFService
-from services.ocr import OCRService
+from app.services.pdf import PDFService
+from app.services.ocr import OCRService
 
 router = APIRouter(prefix="/pdf", tags=["pdf"])
 

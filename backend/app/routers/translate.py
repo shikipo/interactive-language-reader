@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
-from services.ocr import OCRService
-from services.translation import TranslationService
-from models.schemas import HoverRequest
-from routers.pdf import page_cache
+from app.services.ocr import OCRService
+from app.services.translation import TranslationService
+from app.models.schemas import HoverRequest
+from app.routers.pdf import page_cache
 import os
 
 router = APIRouter(prefix="/translate", tags=["translate"])

@@ -5,8 +5,6 @@ import { Main } from '@/components/layout/main'
 import { Progress } from '@/components/ui/progress'
 import { ThemeSwitch } from '@/components/theme-switch'
 
-import docPdfUrl from './data/doc.pdf?url'
-
 import { FileUploadTable } from './components/file-upload-table'
 import { PdfViewer } from './components/pdf-viewer'
 
@@ -14,6 +12,7 @@ export function Dashboard() {
 	const [uploading, setUploading] = useState(false)
 	const [showPdf, setShowPdf] = useState(false)
 	const [progress, setProgress] = useState(0)
+	const [pdfFile, setPdfFile] = useState<File | null>(null)
 
 	useEffect(() => {
 		if (!uploading) return
@@ -41,8 +40,8 @@ export function Dashboard() {
 
 			<Main fixed className='flex flex-col'>
 				{showPdf ? (
-					<PdfViewer file={docPdfUrl} />
-				) : uploading ? (
+                 pdfFile && <PdfViewer file={pdfFile} />
+                ) : uploading ? (
 					<div className='flex flex-1 items-center justify-center'>
 						<Progress value={progress} className='w-[60%]' />
 					</div>
@@ -52,9 +51,33 @@ export function Dashboard() {
 							DE &lt;-&gt; EN
 						</p>
 						<FileUploadTable
-							className='flex-1'
-							onUploadStart={() => { setProgress(0); setUploading(true) }}
-						/>
+  className='flex-1'
+  onUploadStart={async (file) => {
+    setPdfFile(file)
+    setProgress(0)
+    setUploading(true)
+
+    const formData = new FormData()
+    formData.append("file", file)
+    formData.append("target_language", "EN-US")
+
+    try {
+      const response = await fetch(
+        "http://127.0.0.1:8000/pdf/translate",
+        {
+          method: "POST",
+          body: formData,
+        }
+      )
+
+      const data = await response.json()
+
+      console.log("Backend response:", data)
+    } catch (err) {
+      console.error("Upload failed:", err)
+    }
+  }}
+/>
 					</div>
 				)}
 			</Main>
