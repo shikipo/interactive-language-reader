@@ -1,34 +1,109 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+
+import { ArrowRight01Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
+
+import { Button } from '@/components/ui/button'
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuGroup,
+	DropdownMenuLabel,
+	DropdownMenuRadioGroup,
+	DropdownMenuRadioItem,
+	DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
-import { Progress } from '@/components/ui/progress'
 import { ThemeSwitch } from '@/components/theme-switch'
 
 import { FileUploadTable } from './components/file-upload-table'
-import { PdfViewer } from './components/pdf-viewer'
+import { PdfViewer, type PdfPageRegions } from './components/pdf-viewer'
+import { ProgressBar } from './components/progress-bar'
+
+const LANGUAGE_DIRECTIONS = {
+	'DE-EN': {
+		from: 'DE',
+		to: 'EN',
+		sourceLanguage: 'deu',
+		targetLanguage: 'EN-US',
+	},
+	'EN-DE': {
+		from: 'EN',
+		to: 'DE',
+		sourceLanguage: 'eng',
+		targetLanguage: 'DE',
+	},
+} as const
+
+function DirectionLabel({ from, to }: { from: string; to: string }) {
+	return (
+		<span className='inline-flex items-center gap-1.5'>
+			{from}
+			<HugeiconsIcon
+				icon={ArrowRight01Icon}
+				strokeWidth={2}
+				className='size-3.5'
+			/>
+			{to}
+		</span>
+	)
+}
+
+type LanguageDirection = keyof typeof LANGUAGE_DIRECTIONS
+type Status = 'idle' | 'uploading' | 'error' | 'done'
+
+// Uses XHR (not fetch) because only XHR exposes real upload progress events.
+// The backend OCRs every page before responding, so once the upload reaches
+// 100% there's no further signal until the full response lands.
+function uploadPdf(
+	formData: FormData,
+	onProgress: (percent: number) => void
+): Promise<{ session_id: string; pages: PdfPageRegions[] }> {
+	return new Promise((resolve, reject) => {
+		const xhr = new XMLHttpRequest()
+
+		xhr.upload.onprogress = (event) => {
+			if (event.lengthComputable) {
+				onProgress((event.loaded / event.total) * 100)
+			}
+		}
+
+		xhr.onload = () => {
+			if (xhr.status >= 200 && xhr.status < 300) {
+				resolve(JSON.parse(xhr.responseText))
+			} else {
+				reject(new Error(`Server responded with ${xhr.status}`))
+			}
+		}
+
+		xhr.onerror = () => reject(new Error('Network error'))
+
+		xhr.open('POST', 'http://127.0.0.1:8000/pdf/translate')
+		xhr.send(formData)
+	})
+}
 
 export function Dashboard() {
-	const [uploading, setUploading] = useState(false)
-	const [showPdf, setShowPdf] = useState(false)
-	const [progress, setProgress] = useState(0)
+	const [status, setStatus] = useState<Status>('idle')
+	const [uploadProgress, setUploadProgress] = useState(0)
+	const [uploadError, setUploadError] = useState<string | null>(null)
 	const [pdfFile, setPdfFile] = useState<File | null>(null)
+	const [pageRegions, setPageRegions] = useState<PdfPageRegions[]>([])
+	const [sessionId, setSessionId] = useState<string | null>(null)
+	const [direction, setDirection] = useState<LanguageDirection>('DE-EN')
+	const [activeLanguages, setActiveLanguages] = useState<
+		(typeof LANGUAGE_DIRECTIONS)[LanguageDirection]
+	>(LANGUAGE_DIRECTIONS['DE-EN'])
 
-	useEffect(() => {
-		if (!uploading) return
-		const interval = setInterval(() => {
-			setProgress((prev) => {
-				const next = Math.min(prev + Math.random() * 15 + 5, 100)
-				if (next >= 100) {
-					clearInterval(interval)
-					setShowPdf(true)
-					return 100
-				}
-				return next
-			})
-		}, 300)
-		return () => clearInterval(interval)
-	}, [uploading])
+	const resetToUpload = () => {
+		setStatus('idle')
+		setPdfFile(null)
+		setPageRegions([])
+		setSessionId(null)
+		setUploadError(null)
+	}
 
 	return (
 		<>
@@ -39,45 +114,84 @@ export function Dashboard() {
 			</Header>
 
 			<Main fixed className='flex flex-col'>
-				{showPdf ? (
-                 pdfFile && <PdfViewer file={pdfFile} />
-                ) : uploading ? (
+				{status === 'done' && pdfFile ? (
+					<PdfViewer
+						file={pdfFile}
+						pages={pageRegions}
+						sessionId={sessionId}
+						sourceLanguage={activeLanguages.sourceLanguage}
+						targetLanguage={activeLanguages.targetLanguage}
+					/>
+				) : status === 'uploading' || status === 'error' ? (
 					<div className='flex flex-1 items-center justify-center'>
-						<Progress value={progress} className='w-[60%]' />
+						<ProgressBar
+							status={status}
+							uploadProgress={uploadProgress}
+							errorMessage={uploadError ?? undefined}
+							onRetry={resetToUpload}
+						/>
 					</div>
 				) : (
 					<div className='flex flex-1 flex-col'>
-						<p className='mb-4 text-center text-sm text-muted-foreground'>
-							DE &lt;-&gt; EN
-						</p>
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button variant='outline' className='mx-auto mb-4'>
+									<DirectionLabel {...LANGUAGE_DIRECTIONS[direction]} />
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent>
+								<DropdownMenuGroup>
+									<DropdownMenuLabel>Translation direction</DropdownMenuLabel>
+									<DropdownMenuRadioGroup
+										value={direction}
+										onValueChange={(value) =>
+											setDirection(value as LanguageDirection)
+										}
+									>
+										{Object.entries(LANGUAGE_DIRECTIONS).map(
+											([key, { from, to }]) => (
+												<DropdownMenuRadioItem key={key} value={key}>
+													<DirectionLabel from={from} to={to} />
+												</DropdownMenuRadioItem>
+											)
+										)}
+									</DropdownMenuRadioGroup>
+								</DropdownMenuGroup>
+							</DropdownMenuContent>
+						</DropdownMenu>
 						<FileUploadTable
-  className='flex-1'
-  onUploadStart={async (file) => {
-    setPdfFile(file)
-    setProgress(0)
-    setUploading(true)
+							className='flex-1'
+							onUploadStart={async (file) => {
+								setPdfFile(file)
+								setStatus('uploading')
+								setUploadProgress(0)
+								setUploadError(null)
+								setPageRegions([])
+								setSessionId(null)
 
-    const formData = new FormData()
-    formData.append("file", file)
-    formData.append("target_language", "EN-US")
+								const languages = LANGUAGE_DIRECTIONS[direction]
+								setActiveLanguages(languages)
 
-    try {
-      const response = await fetch(
-        "http://127.0.0.1:8000/pdf/translate",
-        {
-          method: "POST",
-          body: formData,
-        }
-      )
+								const formData = new FormData()
+								formData.append('file', file)
+								formData.append('source_language', languages.sourceLanguage)
 
-      const data = await response.json()
-
-      console.log("Backend response:", data)
-    } catch (err) {
-      console.error("Upload failed:", err)
-    }
-  }}
-/>
+								try {
+									const { session_id, pages } = await uploadPdf(
+										formData,
+										setUploadProgress
+									)
+									setSessionId(session_id)
+									setPageRegions(pages)
+									setStatus('done')
+								} catch {
+									setUploadError(
+										'Could not process this PDF. Please try again.'
+									)
+									setStatus('error')
+								}
+							}}
+						/>
 					</div>
 				)}
 			</Main>

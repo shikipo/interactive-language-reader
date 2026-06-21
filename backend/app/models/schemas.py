@@ -11,7 +11,8 @@ class HoverRequest(BaseModel):
     page_number: int
     x: float  # coordinates as % of image size (0-100)
     y: float  # using % makes it resolution-independent
-    target_language: str = "EN-US"
+    target_language: str
+    source_language: str
 
 
 @dataclass

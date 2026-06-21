@@ -27,7 +27,9 @@ async def hover_translate(req: HoverRequest):
     if req.session_id not in ocr_cache:
         ocr_cache[req.session_id] = {}
     if req.page_number not in ocr_cache[req.session_id]:
-        ocr_cache[req.session_id][req.page_number] = ocr_service.extract_text_regions(img_bytes)
+        ocr_cache[req.session_id][req.page_number] = ocr_service.extract_text_regions(
+            img_bytes, lang=req.source_language
+        )
 
     regions = ocr_cache[req.session_id][req.page_number]
 

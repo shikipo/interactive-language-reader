@@ -29,3 +29,5 @@ cookies.xml
 *.njsproj
 *.sln
 *.sw?
+
+venv

@@ -16,7 +16,7 @@ page_cache: dict[str, list[bytes]] = {}
 @router.post("/translate")
 async def translate_pdf(
     file: UploadFile = File(...),
-    target_language: str = Form(default="EN-US"),
+    source_language: str = Form(...),
 ):
     if not file.filename.endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are accepted.")
@@ -29,7 +29,7 @@ async def translate_pdf(
 
     results = []
     for i, img_bytes in enumerate(pages):
-        regions = ocr_service.extract_text_regions(img_bytes)
+        regions = ocr_service.extract_text_regions(img_bytes, lang=source_language)
         results.append({
             "page": i + 1,
             "regions": [

@@ -23,18 +23,13 @@ cd backend
 # Create and activate virtual environment
 python -m venv venv
 
-# Activate (Bash/Zsh)
-source venv/bin/activate
-# Activate (Fish)
-source venv/bin/activate.fish
 # Activate (Windows)
 .\venv\Scripts\activate
 
 # Install dependencies
 pip install fastapi uvicorn python-multipart pytesseract opencv-python numpy deepl python-dotenv pymupdf
 
-# Run the server from the app directory
-cd app
+# Run the server
 uvicorn main:app --reload
 ```
 
