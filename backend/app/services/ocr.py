@@ -1,3 +1,4 @@
+import os
 import pytesseract
 
 import sys
@@ -18,10 +19,14 @@ class OCRService:
     def extract_text_regions(self, image_bytes: bytes, lang: str) -> list[TextRegion]:
         image = self._bytes_to_cv2(image_bytes)
         preprocessed = self._preprocess(image)
+        
+        tessdata_dir = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "..", "..", "tessdata")
+        )
         data = pytesseract.image_to_data(
             preprocessed,
             output_type=pytesseract.Output.DICT,
-            config="--psm 11",
+            config=f"--psm 11 --tessdata-dir {tessdata_dir}",
             lang=lang,
         )
 
