@@ -24,54 +24,40 @@ class OCRService:
             config="--psm 11",
             lang=lang,
         )
-        return self._group_by_block(data)
+
+        regions = []
+        for i, word in enumerate(data["text"]):
+            cleaned_word = word.strip()
+            if not cleaned_word:
+                continue
+            try:
+                conf = int(data["conf"][i])
+            except (ValueError, TypeError):
+                conf = 0
+            if conf < 30:
+                continue
+
+            # Strip leading/trailing punctuation from the word
+            word_text = cleaned_word.strip(",.?!:;()[]{}'\"“”«»`~@#%^&*_-+=/\\<>")
+            if not word_text:
+                continue
+
+            regions.append(TextRegion(
+                block_num=data["block_num"][i],
+                text=word_text,
+                x=data["left"][i],
+                y=data["top"][i],
+                width=data["width"][i],
+                height=data["height"][i],
+            ))
+
+        regions.sort(key=lambda r: (r.y, r.x))
+        return regions
 
     def get_image_dimensions(self, image_bytes: bytes) -> tuple[int, int]:
         img = self._bytes_to_cv2(image_bytes)
         h, w = img.shape[:2]
         return w, h
-
-    def _group_by_block(self, data: dict) -> list[TextRegion]:
-        blocks: dict[int, dict] = {}
-
-        for i, word in enumerate(data["text"]):
-            if not word.strip():
-                continue
-            conf = int(data["conf"][i])
-            if conf < 30:
-                continue
-
-            block_num = data["block_num"][i]
-            if block_num not in blocks:
-                blocks[block_num] = {
-                    "words": [],
-                    "x": data["left"][i],
-                    "y": data["top"][i],
-                    "x2": data["left"][i] + data["width"][i],
-                    "y2": data["top"][i] + data["height"][i],
-                }
-            else:
-                blocks[block_num]["x"] = min(blocks[block_num]["x"], data["left"][i])
-                blocks[block_num]["y"] = min(blocks[block_num]["y"], data["top"][i])
-                blocks[block_num]["x2"] = max(blocks[block_num]["x2"], data["left"][i] + data["width"][i])
-                blocks[block_num]["y2"] = max(blocks[block_num]["y2"], data["top"][i] + data["height"][i])
-            blocks[block_num]["words"].append(word)
-
-        regions = []
-        for block_num, block in blocks.items():
-            text = " ".join(block["words"]).strip()
-            if text:
-                regions.append(TextRegion(
-                    block_num=block_num,
-                    text=text,
-                    x=block["x"],
-                    y=block["y"],
-                    width=block["x2"] - block["x"],
-                    height=block["y2"] - block["y"],
-                ))
-
-        regions.sort(key=lambda r: (r.y, r.x))
-        return regions
 
     def _preprocess(self, image: np.ndarray) -> np.ndarray:
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)

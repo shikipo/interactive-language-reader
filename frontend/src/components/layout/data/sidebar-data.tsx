@@ -1,4 +1,4 @@
-import { HelpCircleIcon, Home08Icon, LibraryIcon, Settings01Icon } from '@hugeicons/core-free-icons'
+import { HelpCircleIcon, Home08Icon, LibraryIcon, Settings01Icon, BookOpen01Icon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
 
 import { type NavGroup } from '../types'
@@ -20,6 +20,11 @@ export const sidebarData: NavGroup[] = [
 				title: 'Library',
 				url: '/library',
 				icon: icon(LibraryIcon),
+			},
+			{
+				title: 'Study Mode',
+				url: '/study',
+				icon: icon(BookOpen01Icon),
 			},
 		],
 	},

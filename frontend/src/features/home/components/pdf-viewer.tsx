@@ -106,7 +106,7 @@ function WordRegion({
 			return
 		}
 
-		let trans = translated
+		const trans = translated
 		if (!trans) {
 			if (!sessionId) {
 				addItem({

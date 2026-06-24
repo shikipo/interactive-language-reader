@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { ArrowLeftIcon } from 'lucide-react'
+import { useReaderStore } from '@/stores/reader-store'
 
 import { ArrowRight01Icon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
@@ -52,11 +53,7 @@ function DirectionLabel({ from, to }: { from: string; to: string }) {
 }
 
 type LanguageDirection = keyof typeof LANGUAGE_DIRECTIONS
-type Status = 'idle' | 'uploading' | 'error' | 'done'
 
-// Uses XHR (not fetch) because only XHR exposes real upload progress events.
-// The backend OCRs every page before responding, so once the upload reaches
-// 100% there's no further signal until the full response lands.
 function uploadPdf(
 	formData: FormData,
 	onProgress: (percent: number) => void
@@ -86,28 +83,39 @@ function uploadPdf(
 }
 
 export function Dashboard() {
-	const [status, setStatus] = useState<Status>('idle')
-	const [uploadProgress, setUploadProgress] = useState(0)
-	const [uploadError, setUploadError] = useState<string | null>(null)
-	const [pdfFile, setPdfFile] = useState<File | null>(null)
-	const [pageRegions, setPageRegions] = useState<PdfPageRegions[]>([])
-	const [sessionId, setSessionId] = useState<string | null>(null)
-	const [direction, setDirection] = useState<LanguageDirection>('DE-EN')
-	const [activeLanguages, setActiveLanguages] = useState<
-		(typeof LANGUAGE_DIRECTIONS)[LanguageDirection]
-	>(LANGUAGE_DIRECTIONS['DE-EN'])
+	const {
+		status,
+		setStatus,
+		uploadProgress,
+		setUploadProgress,
+		uploadError,
+		setUploadError,
+		pdfFile,
+		setPdfFile,
+		pageRegions,
+		setPageRegions,
+		sessionId,
+		setSessionId,
+		direction,
+		setDirection,
+		activeLanguages,
+		setActiveLanguages,
+		reset,
+	} = useReaderStore()
 
 	const resetToUpload = () => {
-		setStatus('idle')
-		setPdfFile(null)
-		setPageRegions([])
-		setSessionId(null)
-		setUploadError(null)
+		reset()
 	}
 
 	return (
 		<>
 			<Header fixed>
+				{status === 'done' && (
+					<Button variant='outline' size='sm' onClick={resetToUpload} className='gap-2 shadow-sm hover:bg-muted/80 transition-colors'>
+						<ArrowLeftIcon className='size-4' />
+						<span>Back to Upload</span>
+					</Button>
+				)}
 				<div className='ms-auto flex items-center space-x-4'>
 					<ThemeSwitch />
 				</div>
