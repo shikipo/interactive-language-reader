@@ -1,8 +1,11 @@
 import pytesseract
 
-pytesseract.pytesseract.tesseract_cmd = (
-    r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-)
+import sys
+
+if sys.platform == "win32":
+    pytesseract.pytesseract.tesseract_cmd = (
+        r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+    )
 
 print("OCR loaded")
 print("Tesseract:", pytesseract.get_tesseract_version())

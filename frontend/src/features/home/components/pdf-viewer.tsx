@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 
-import { CircleAlertIcon } from 'lucide-react'
+import { CircleAlertIcon, CheckIcon } from 'lucide-react'
 import { Document, Page, pdfjs } from 'react-pdf'
 import 'react-pdf/dist/Page/AnnotationLayer.css'
 import 'react-pdf/dist/Page/TextLayer.css'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { cn } from '@/lib/utils'
+import { toast } from 'sonner'
+import { useDictionaryStore } from '@/stores/dictionary-store'
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
 
@@ -56,6 +59,9 @@ function WordRegion({
 }) {
 	const [translated, setTranslated] = useState<string | null>(null)
 	const [loading, setLoading] = useState(false)
+	
+	const { addItem, removeItem, hasItem, items } = useDictionaryStore()
+	const isSaved = hasItem(region.text)
 
 	const handleHover = async () => {
 		if (translated || loading || !sessionId) return
@@ -87,14 +93,110 @@ function WordRegion({
 		}
 	}
 
+	const handleRegionClick = async (e: React.MouseEvent) => {
+		e.stopPropagation()
+		if (isSaved) {
+			const item = items.find(
+				(i) => i.original.toLowerCase().trim() === region.text.toLowerCase().trim()
+			)
+			if (item) {
+				removeItem(item.id)
+				toast.success(`Removed "${region.text}" from dictionary.`)
+			}
+			return
+		}
+
+		let trans = translated
+		if (!trans) {
+			if (!sessionId) {
+				addItem({
+					original: region.text,
+					translated: region.text,
+					language: `${sourceLanguage}-${targetLanguage}`
+				})
+				toast.success(`Saved "${region.text}" to dictionary!`)
+				return
+			}
+
+			toast.promise(
+				(async () => {
+					const centerX = region.x + region.width / 2
+					const centerY = region.y + region.height / 2
+					const response = await fetch('http://127.0.0.1:8000/translate/hover', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({
+							session_id: sessionId,
+							page_number: pageNumber,
+							x: (centerX / imageWidth) * 100,
+							y: (centerY / imageHeight) * 100,
+							source_language: sourceLanguage,
+							target_language: targetLanguage,
+						}),
+					})
+					if (!response.ok) throw new Error("Could not translate")
+					const data = await response.json()
+					const resTrans = data.matched ? data.translated : region.text
+					setTranslated(resTrans)
+					addItem({
+						original: region.text,
+						translated: resTrans,
+						language: `${sourceLanguage}-${targetLanguage}`
+					})
+					return region.text
+				})(),
+				{
+					loading: 'Translating and saving...',
+					success: (text) => `Saved "${text}" to dictionary!`,
+					error: 'Failed to translate and save.'
+				}
+			)
+		} else {
+			addItem({
+				original: region.text,
+				translated: trans,
+				language: `${sourceLanguage}-${targetLanguage}`
+			})
+			toast.success(`Saved "${region.text}" to dictionary!`)
+		}
+	}
+
 	return (
 		<div
-			className='group absolute cursor-pointer border border-primary'
+			className={cn(
+				'group absolute cursor-pointer border transition-all duration-200 rounded-sm hover:z-30',
+				isSaved
+					? 'border-green-500 bg-green-500/10 hover:bg-green-500/20 shadow-sm shadow-green-500/20'
+					: 'border-primary/40 bg-primary/5 hover:border-primary hover:bg-primary/10'
+			)}
 			style={style}
 			onMouseEnter={handleHover}
+			onClick={handleRegionClick}
 		>
-			<span className='pointer-events-none absolute -top-6 left-0 hidden rounded bg-primary px-1.5 py-0.5 text-xs whitespace-nowrap text-primary-foreground group-hover:block'>
-				{loading ? '…' : (translated ?? region.text)}
+			<span className='pointer-events-none absolute -bottom-16 left-0 hidden max-w-xs min-w-[140px] whitespace-normal break-words rounded-lg bg-zinc-950 p-2 text-[11px] text-zinc-50 group-hover:block z-50 shadow-lg border border-zinc-800 leading-snug'>
+				{loading ? (
+					<span className='flex items-center gap-1.5 text-zinc-400 font-mono'>
+						<span className='animate-spin inline-block h-3 w-3 border-2 border-emerald-400 border-t-transparent rounded-full'></span>
+						Translating...
+					</span>
+				) : (
+					<span className='flex flex-col gap-1'>
+						<span className='text-[9px] font-mono border-b border-zinc-800 pb-0.5 flex justify-between items-center w-full'>
+							{isSaved ? (
+								<span className='text-green-400 flex items-center gap-1 font-semibold'>
+									<CheckIcon className='size-2.5' /> Saved
+								</span>
+							) : (
+								<span className='text-zinc-500'>DeepL Translation</span>
+							)}
+							<span className='text-zinc-500 uppercase'>{targetLanguage}</span>
+						</span>
+						<span>{translated ?? region.text}</span>
+						<span className='text-[8px] text-zinc-600 mt-1 block text-right font-sans'>
+							Click to {isSaved ? 'remove' : 'save'} word
+						</span>
+					</span>
+				)}
 			</span>
 		</div>
 	)
@@ -141,7 +243,7 @@ export function PdfViewer({
 	}
 
 	return (
-		<div ref={containerRef} className='overflow-auto rounded-xl border p-4'>
+		<div ref={containerRef} className='flex-1 overflow-auto rounded-xl border p-4 min-h-0'>
 			<Document
 				file={file}
 				loading={null}
